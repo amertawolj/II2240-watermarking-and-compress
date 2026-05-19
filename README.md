@@ -1,6 +1,8 @@
 # Digital Watermarking & Compression Tool
 
 Aplikasi Python untuk watermarking dan kompresi gambar digital berbasis CLI.
+Wa Ode Amerta Lambelu Jamaluddin 18224034
+Tugas Sistem Multimedia K02 2026
 
 ---
 
