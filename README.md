@@ -95,7 +95,8 @@ Fungsi `plot_analysis()` menampilkan:
 Ini membantu melihat apakah watermark bersifat halus sekaligus memverifikasi bahwa perubahan citra tetap kecil.
 
 Contoh hasil analisis perbandingan gambar before and after watermark:
-assets/hasil_analisis/ss_hasil_analisis2.png
+
+![Hasil Analisis](assets/hasil_analisis/ss_hasil_analisis2.png)
 
 ---
 
