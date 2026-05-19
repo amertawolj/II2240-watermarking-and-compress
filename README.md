@@ -20,34 +20,82 @@ python main.py
 
 ---
 
-## Fitur
+## Cara Kerja Watermarking
 
-### Menu 1 — Watermarking
+Aplikasi ini mendukung dua jenis watermark:
 
-| Opsi | Deskripsi |
-|------|-----------|
-| Tambah Watermark Teks | Sisipkan teks ke gambar dengan opacity & posisi |
-| Tambah Watermark Logo | Tempelkan logo/gambar ke gambar utama |
-| Invisible Watermark (LSB) | Sembunyikan pesan dalam pixel gambar |
-| Ekstrak Invisible Watermark | Baca pesan tersembunyi dari gambar |
+1. **Visible watermark** — teks atau logo yang terlihat langsung di atas gambar.
+2. **Invisible watermark** — pesan tersembunyi yang disimpan dalam bit pixel sehingga hampir tidak berubah secara visual.
 
-### Menu 2 — Compression
+### Visible watermark
 
-| Opsi | Deskripsi |
-|------|-----------|
-| Kompres JPEG | Kompresi lossy dengan kontrol kualitas 1-95 |
-| Kompres PNG | Kompresi lossless dengan level 0-9 |
-| Kompres Batch | Kompres semua gambar dalam satu folder |
-| Info Gambar | Lihat metadata dan detail file |
+- Watermark teks dibuat dengan menggambar teks ke layer transparan dan menggabungkannya ke gambar utama.
+- Watermark logo dilakukan dengan meresize logo, menyesuaikan opacity, lalu menempelkan logo ke posisi yang dipilih.
 
-### Menu 3 — Image Quality Analysis
+Contoh input dan logo:
 
-| Opsi | Deskripsi |
-|------|-----------|
-| DeskripsiSide-by-Side | KKomparasi visual langsung gambar Original vs Watermarked beserta ukuran filenya |
-| Difference Map (10x) | Menampilkan peta perbedaan piksel yang diperkuat 10x lipat untuk melihat letak perubahan |
-| Quality Metrics Bar Chart | Pixel Distribution (RGB) |
-| Summary Panel | Kesimpulan teks otomatis terkait tingkat kemiripan citra (Sangat Baik / Sangat Mirip) |
+![Original Image](assets/sample_images/choso.jpg)
+
+![Watermark Logo](assets/watermark_logo/sonic.png)
+
+![Output](output/choso_logo_watermarked.jpg)
+
+### Invisible watermark (LSB)
+
+Invisible watermark menggunakan teknik **LSB steganography** pada channel merah.
+
+- Setiap karakter pesan diubah menjadi format binary 8-bit.
+- Setiap bit pesan disimpan di **Least Significant Bit** (bit paling rendah) dari channel merah setiap pixel.
+- Ubah bit paling rendah berarti nilai merah hanya berubah paling banyak 1 dari 0–255.
+- Akibatnya, gambar tampak hampir sama untuk mata manusia, tetapi pesan dapat diekstrak kembali secara akurat.
+
+Proses embed:
+
+1. Tambahkan delimiter akhir pesan `<<<END>>>`.
+2. Konversi tiap karakter ke urutan 8 bit.
+3. Sisipkan setiap bit ke LSB channel merah pixel berikutnya.
+4. Simpan hasil sebagai **PNG** agar bit tersembunyi tidak rusak.
+
+Proses ekstraksi:
+
+1. Baca nilai merah setiap pixel.
+2. Ambil bit LSB dari channel merah.
+3. Gabungkan setiap 8 bit menjadi karakter.
+4. Berhenti ketika delimiter `<<<END>>>` ditemukan.
+
+> Karena hanya bit paling kecil yang diubah, perbedaan visual biasanya tidak terlihat, tetapi data pesan tetap tersimpan secara tersembunyi.
+
+---
+
+## Analisis Kualitas Gambar
+
+Modul analisis (`modules/analysis.py`) menghitung metrik kualitas antara gambar asli dan gambar watermarked.
+
+### Metrik yang dihitung
+
+- `MSE` (Mean Squared Error): semakin kecil semakin mirip.
+- `PSNR` (Peak Signal-to-Noise Ratio): semakin besar semakin bagus.
+  - > 40 dB = sangat baik
+  - 30–40 dB = baik
+  - < 30 dB = terlihat degradasi
+- `SSIM` (Structural Similarity Index): nilai antara 0–1, semakin mendekati 1 semakin mirip.
+  - > 0.95 = sangat mirip
+  - > 0.80 = masih dapat diterima
+
+### Visualisasi yang dibuat
+
+Fungsi `plot_analysis()` menampilkan:
+
+- Gambar asli vs gambar watermarked
+- `Difference Map (10×)` yang memperbesar perbedaan pixel
+- Bar chart `MSE`, `PSNR`, dan `SSIM`
+- Histogram distribusi warna `RGB`
+- Ringkasan kualitas dan ukuran file
+
+Ini membantu melihat apakah watermark bersifat halus sekaligus memverifikasi bahwa perubahan citra tetap kecil.
+
+Contoh hasil analisis perbandingan gambar before and after watermark:
+assets/hasil_analisis/ss_hasil_analisis2.png
 
 ---
 
@@ -73,7 +121,7 @@ watermarking_app/
 
 ## Catatan Teknis
 
-- **Invisible watermark** menggunakan teknik **LSB (Least Significant Bit)** pada channel merah
-- File output invisible watermark **wajib PNG** (JPEG akan merusak data LSB)
-- Kompresi JPEG bersifat **lossy** (ada penurunan kualitas), PNG bersifat **lossless**
-- Semua output disimpan di folder `output/`
+- **Invisible watermark** menggunakan teknik **LSB (Least Significant Bit)** pada channel merah.
+- Output invisible watermark harus disimpan sebagai **PNG**; file JPEG akan merusak data LSB.
+- Kompresi JPEG bersifat **lossy** (ada penurunan kualitas), PNG bersifat **lossless**.
+- Semua output disimpan di folder `output/`.
