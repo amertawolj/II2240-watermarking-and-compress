@@ -38,6 +38,15 @@ python main.py
 | Kompres Batch | Kompres semua gambar dalam satu folder |
 | Info Gambar | Lihat metadata dan detail file |
 
+### Menu 3 — Image Quality Analysis
+
+| Opsi | Deskripsi |
+|------|-----------|
+| DeskripsiSide-by-Side | KKomparasi visual langsung gambar Original vs Watermarked beserta ukuran filenya |
+| Difference Map (10x) | Menampilkan peta perbedaan piksel yang diperkuat 10x lipat untuk melihat letak perubahan |
+| Quality Metrics Bar Chart | Pixel Distribution (RGB) |
+| Summary Panel | Kesimpulan teks otomatis terkait tingkat kemiripan citra (Sangat Baik / Sangat Mirip) |
+
 ---
 
 ## Struktur Folder
@@ -47,7 +56,8 @@ watermarking_app/
 ├── main.py               # Entry point & menu
 ├── modules/
 │   ├── watermark.py      # Logika watermarking
-│   └── compression.py    # Logika kompresi
+│   ├── compression.py    # Logika kompresi
+│   └── analysis.py       # Logika analisis hasil watermarking
 ├── utils/
 │   ├── file_handler.py   # Validasi & helper file
 │   └── image_utils.py    # Helper gambar
