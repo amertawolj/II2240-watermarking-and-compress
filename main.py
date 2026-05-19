@@ -8,6 +8,7 @@ import os
 import sys
 from modules.watermark import WatermarkModule
 from modules.compression import CompressionModule
+from modules.analysis import AnalysisModule
 from utils.file_handler import FileHandler
 
 
@@ -28,6 +29,7 @@ def print_main_menu():
     print()
     print("  [1]  Watermarking")
     print("  [2]  Compression")
+    print("  [3]  Analisis Kualitas (PSNR / SSIM / MSE)")
     print("  [0]  Keluar")
     print()
     print("-" * 55)
@@ -59,7 +61,104 @@ def print_compression_menu():
     print("-" * 55)
 
 
-def handle_watermark_menu():
+def print_analysis_menu():
+    print_banner()
+    print("  MENU ANALISIS KUALITAS")
+    print()
+    print("  [1]  Analisis Satu Gambar (Original vs Watermarked)")
+    print("  [2]  Bandingkan Beberapa Hasil Watermark")
+    print("  [0]  Kembali ke Menu Utama")
+    print()
+    print("-" * 55)
+
+
+def handle_analysis_menu():
+    an = AnalysisModule()
+    fh = FileHandler()
+
+    while True:
+        clear_screen()
+        print_analysis_menu()
+        choice = input("  Pilih opsi: ").strip()
+
+        if choice == "0":
+            break
+
+        elif choice == "1":
+            print()
+            orig_path = input("  Path gambar ORIGINAL    : ").strip().strip('"')
+            if not fh.validate_image(orig_path):
+                input("  [Enter untuk lanjut]")
+                continue
+
+            wm_path = input("  Path gambar WATERMARKED : ").strip().strip('"')
+            if not fh.validate_image(wm_path):
+                input("  [Enter untuk lanjut]")
+                continue
+
+            print()
+            print("  Menghitung metrik...")
+            result = an.analyze(orig_path, wm_path)
+
+            if result["success"]:
+                print(f"  MSE  : {result['mse']}")
+                print(f"  PSNR : {result['psnr']} dB")
+                print(f"  SSIM : {result['ssim']}")
+                print()
+                print("  Membuka grafik...")
+                an.plot_analysis(orig_path, wm_path, result)
+            else:
+                print(f"  ✗ Gagal: {result['error']}")
+
+            input("\n  [Enter untuk lanjut]")
+
+        elif choice == "2":
+            print()
+            orig_path = input("  Path gambar ORIGINAL : ").strip().strip('"')
+            if not fh.validate_image(orig_path):
+                input("  [Enter untuk lanjut]")
+                continue
+
+            watermarked_paths = []
+            print()
+            print("  Masukkan gambar-gambar watermarked (kosongkan untuk selesai):")
+
+            i = 1
+            while True:
+                label = input(f"  Label #{i} (contoh: 'Teks', 'LSB') : ").strip()
+                if not label:
+                    break
+                path = input(f"  Path  #{i}                           : ").strip().strip('"')
+                if fh.validate_image(path):
+                    watermarked_paths.append((label, path))
+                    i += 1
+                else:
+                    print("  File tidak valid, skip.")
+
+            if not watermarked_paths:
+                print("  ✗ Tidak ada gambar yang dimasukkan.")
+                input("  [Enter untuk lanjut]")
+                continue
+
+            print()
+            print("  Menghitung metrik...")
+            results = an.analyze_multiple(orig_path, watermarked_paths)
+
+            for r in results:
+                print(f"  [{r['label']}] MSE={r['mse']}  PSNR={r['psnr']} dB  SSIM={r['ssim']}")
+
+            print()
+            print("  Membuka grafik perbandingan...")
+            an.plot_comparison(results)
+
+            input("\n  [Enter untuk lanjut]")
+
+        else:
+            print("  Pilihan tidak valid.")
+            input("  [Enter untuk lanjut]")
+
+
+
     wm = WatermarkModule()
     fh = FileHandler()
 
@@ -298,6 +397,8 @@ def main():
             handle_watermark_menu()
         elif choice == "2":
             handle_compression_menu()
+        elif choice == "3":
+            handle_analysis_menu()
         elif choice == "0":
             clear_screen()
             print("  Terima kasih! Program selesai.")
